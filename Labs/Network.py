@@ -152,7 +152,8 @@ class Network(object):
             input_node = connection.input_node
             output_node = connection.output_node
             signal_power = connection.signal_power
-            self.set_weighted_paths(signal_power)
+            #self.set_weighted_paths(signal_power) Lab3
+            self.set_weighted_paths(1)  #Lab4
             if best == 'latency':
                 path = self.find_best_latency(input_node, output_node)
             elif best == 'snr':
@@ -160,12 +161,15 @@ class Network(object):
             else:
                 print('ERROR: best input not recognized.Value:', best)
                 continue
-
-            in_signal_information = SignalInformation(signal_power, path)
-            out_signal_information = self.propagate(in_signal_information)
-            connection.latency = out_signal_information.latency
-            noise = out_signal_information.noise_power
-            connection.snr = 10 * np.log10(signal_power / noise)
+            if path: #added condition for Lab4 on the path
+                in_signal_information = SignalInformation(signal_power, path)
+                out_signal_information = self.propagate(in_signal_information)
+                connection.latency = out_signal_information.latency
+                noise = out_signal_information.noise_power
+                connection.snr = 10 * np.log10(signal_power / noise)
+            else:
+                connection.snr=0
+                connection.latency='None'
             streamed_connections.append(connection)
         return streamed_connections
 
