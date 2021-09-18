@@ -135,15 +135,16 @@ class Network(object):
         df['snr'] = snrs
         self._weighted_paths = df
 
-    def find_best_latency(self, input_node, output_node):
-        all_paths = self.weighted_paths.path.values
-        inout_paths = [path for path in all_paths if ((path[0] == input_node) and (path[-1] == output_node))]
-        inout_df = self.weighted_paths.loc[
-        self.weighted_paths.path.isin(inout_paths)]
-        best_latency = np.min(inout_df.latency.values)
-        best_path = inout_df.loc[
-        inout_df.latency == best_latency].path.values[0].replace('->', '')
-        return best_path
+    #Lab3 --ridefinita in Lab4 sotto
+    #def find_best_latency(self, input_node, output_node):
+    #   all_paths = self.weighted_paths.path.values
+    #  inout_paths = [path for path in all_paths if ((path[0] == input_node) and (path[-1] == output_node))]
+    #    inout_df = self.weighted_paths.loc[
+    #        self.weighted_paths.path.isin(inout_paths)]
+    #    best_latency = np.min(inout_df.latency.values)
+    #    best_path = inout_df.loc[
+    #        inout_df.latency == best_latency].path.values[0].replace('->', '')
+    #    return best_path
 
     def stream(self, connections, best='latency'):
         streamed_connections = []
@@ -167,3 +168,43 @@ class Network(object):
             connection.snr = 10 * np.log10(signal_power / noise)
             streamed_connections.append(connection)
         return streamed_connections
+
+    #es7 Lab4
+
+    def available_paths(self, input_node, output_node):
+        if self.weighted_paths is None:
+            self.set_weighted_paths(1)
+        all_paths = [path for path in self.weighted_paths.path.values
+            if ((path[0] == input_node) and (path[-1] == output_node))]
+        unavailable_lines = [line for line in self.lines
+            if self.lines[line].state =='occupied']
+        available_paths = []
+        for path in all_paths:
+            available = True
+            for line in unavailable_lines:
+                if line[0] + '->' + line[1] in path:
+                    available = False
+                    break
+            if available:
+                available_paths.append(path)
+        return available_paths
+
+    def find_best_snr(self, input_node, output_node):
+        available_paths = self.available_paths(input_node, output_node)
+        if available_paths:
+            inout_df = self.weighted_paths.loc[self.weighted_paths.path.isin(available_paths)]
+            best_snr = np.max(inout_df.snr.values)
+            best_path = inout_df.loc[inout_df.snr == best_snr].path.values[0].replace('->', '')
+        else:
+            best_path = None
+        return best_path
+
+    def find_best_latency(self, input_node, output_node):
+        available_paths = self.available_paths(input_node, output_node)
+        if available_paths:
+            inout_df = self.weighted_paths.loc[self.weighted_paths.path.isin(available_paths)]
+            best_latency = np.min(inout_df.latency.values)
+            best_path = inout_df.loc[inout_df.latency == best_latency].path.values[0].replace('->', '')
+        else:
+            best_path = None
+        return best_path

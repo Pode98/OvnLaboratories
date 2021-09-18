@@ -11,6 +11,7 @@ class Line(object):
     def __init__(self,line_dict):
         self._label=line_dict['label']
         self._lenght=line_dict['lenght']
+        self._state='free'
         self._successive={} #Node
 
     @property
@@ -20,6 +21,18 @@ class Line(object):
     @property
     def lenght(self):
         return self._lenght
+
+    @property       #Lab4
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        state = state.lower().strip()
+        if state in ['free', 'occupied']:
+            self._state = state
+        else:
+            print('ERROR: line state not recognized.Value:', state)
 
     @property
     def successive(self):
@@ -37,7 +50,7 @@ class Line(object):
         noise=signal_power/(2*self._lenght)
         return noise
 
-    def propagate(self,signal_information):
+    def propagate(self,signal_information,occupation=False):
         #latency
         latency=self.latency_generation()
         signal_information.add_latency(latency)
@@ -47,6 +60,10 @@ class Line(object):
         noise=self.noise_generation(signal_power)
         signal_information.add_noise(noise)
 
+        #state
+        if occupation:
+            self.state = 'occupied'
+
         node=self.successive[signal_information.path[0]]
-        signal_information=node.propagate(signal_information)
+        signal_information=node.propagate(signal_information,occupation)
         return signal_information
