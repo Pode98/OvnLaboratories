@@ -2,8 +2,8 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-from Lab3.Signal_information import *
-from Lab3.Line import *
+from Labs.Signal_information import *
+from Labs.Line import *
 
 class Node(object):
     def __init__(self,node_dict):

@@ -2,8 +2,8 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.constants import c
-from Lab3.Node import *
-from Lab3.Signal_information import *
+from Labs.Node import *
+from Labs.Signal_information import *
 
 
 class Line(object):

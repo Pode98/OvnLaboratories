@@ -1,16 +1,19 @@
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.constants import c
-from Lab3.Node import *
-from Lab3.Line import *
-from Lab3.Signal_information import *
+from Labs.Node import *
+from Labs.Line import *
+from Labs.Signal_information import *
 
 
 class Network(object):
     def __init__(self):
         self._nodes={}
         self._lines={}
+        self._connected = False #Lab4
+        self._weighted_paths = None #Lab4
         node_json=json.load(open(json.path,'r'))
         for node_label in node_json:
             #create nodes
@@ -39,6 +42,7 @@ class Network(object):
     @property
     def lines(self):
         return self._lines
+
 
     def draw(self):
         nodes=self.nodes
@@ -83,6 +87,7 @@ class Network(object):
                 line=lines_dict[line_label]
                 line.successive[connected_node]=nodes_dict[connected_node]
                 node.successive[line_label]=lines_dict[line_label]
+        self._connected = True
 
 
     def propagate(self,signal_information):
@@ -90,3 +95,51 @@ class Network(object):
         start_node=self.nodes[path[0]]
         propagated_signal_information=start_node.propagate(signal_information)
         return  propagated_signal_information
+
+
+    #Lab4
+    @property
+    def weighted_paths(self):
+        return self._weighted_paths
+
+    def set_weighted_paths(self, signal_power):
+        if not self.connected:
+            self.connect()
+        node_labels = self.nodes.keys()
+        pairs = []
+        for label1 in node_labels:
+            for label2 in node_labels:
+                if label1 != label2:
+                    pairs.append(label1 + label2)
+        df = pd.DataFrame()
+        paths = []
+        latencies = []
+        noises = []
+        snrs = []
+        for pair in pairs:
+            for path in self.find_paths(pair[0], pair[1]):
+                path_string = ''
+                for node in path:
+                    path_string += node + '->'
+                paths.append(path_string[:-2])
+                # Propagation
+                signal_information = SignalInformation(signal_power, path)
+                signal_information = self.propagate(signal_information)
+                latencies.append(signal_information.latency)
+                noises.append(signal_information.noise_power)
+                snrs.append(10 * np.log10(signal_information.signal_power / signal_information.noise_power) )
+        df['path'] = paths
+        df['latency'] = latencies
+        df['noise'] = noises
+        df['snr'] = snrs
+        self._weighted_paths = df
+
+    def find_best_latency(self, input_node, output_node):
+        all_paths = self.weighted_paths.path.values
+        inout_paths = [path for path in all_paths if ((path[0] == input_node) and (path[-1] == output_node))]
+        inout_df = self.weighted_paths.loc[
+        self.weighted_paths.path.isin(inout_paths)]
+        best_latency = np.min(inout_df.latency.values)
+        best_path = inout_df.loc[
+        inout_df.latency == best_latency].path.values[0].replace('->', '')
+        return best_path

@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.constants import c
 import pandas as pd
-from Lab3.Node import *
-from Lab3.Line import *
-from Lab3.Signal_information import *
-from Lab3.Network import *
+from Labs.Node import *
+from Labs.Line import *
+from Labs.Signal_information import *
+from Labs.Network import *
 
 network = Network('nodes.json')
 network.connect()
