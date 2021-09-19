@@ -56,7 +56,7 @@ class Lightpath(object):  #Lab5 definita nuova classe
     def next(self):
         self.path = self.path[1:]
 
-class SignalInformation(object):
+class SignalInformation(Lightpath):
     def __init__(self,power,path):
         self._signal_power=power
         self._path=path
