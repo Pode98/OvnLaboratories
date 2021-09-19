@@ -15,6 +15,7 @@ class Network(object):
         self._lines={}
         self._connected = False #Lab4
         self._weighted_paths = None #Lab4
+        self._route_space = None #Lab5
         node_json=json.load(open(json.path,'r'))
         for node_label in node_json:
             #create nodes
@@ -43,6 +44,10 @@ class Network(object):
     @property
     def lines(self):
         return self._lines
+
+    @property
+    def connected(self):
+        return self._connected
 
 
     def draw(self):
@@ -91,11 +96,17 @@ class Network(object):
         self._connected = True
 
 
-    def propagate(self,signal_information):
-        path=signal_information.path
+    # def propagate(self,signal_information):  #funzione prima di Lab5
+    #     path=signal_information.path
+    #     start_node=self.nodes[path[0]]
+    #     propagated_signal_information=start_node.propagate(signal_information)
+    #     return  propagated_signal_information
+
+    def propagate(self,lightpath, occupation=False): #Aggiornata a Lab5
+        path=lightpath.path
         start_node=self.nodes[path[0]]
-        propagated_signal_information=start_node.propagate(signal_information)
-        return  propagated_signal_information
+        propagated_lightpath=start_node.propagate(lightpath,occupation)
+        return  propagated_lightpath
 
 
     #Lab4
@@ -103,7 +114,7 @@ class Network(object):
     def weighted_paths(self):
         return self._weighted_paths
 
-    def set_weighted_paths(self, signal_power):
+    def set_weighted_paths(self, signal_power):#Modifica Lab5 con implementazione route space
         if not self.connected:
             self.connect()
         node_labels = self.nodes.keys()
@@ -117,23 +128,32 @@ class Network(object):
         latencies = []
         noises = []
         snrs = []
+
         for pair in pairs:
             for path in self.find_paths(pair[0], pair[1]):
                 path_string = ''
                 for node in path:
                     path_string += node + '->'
                 paths.append(path_string[:-2])
+
                 # Propagation
                 signal_information = SignalInformation(signal_power, path)
-                signal_information = self.propagate(signal_information)
+                signal_information = self.propagate(signal_information,occupation=False)
                 latencies.append(signal_information.latency)
                 noises.append(signal_information.noise_power)
                 snrs.append(10 * np.log10(signal_information.signal_power / signal_information.noise_power) )
+
         df['path'] = paths
         df['latency'] = latencies
         df['noise'] = noises
         df['snr'] = snrs
         self._weighted_paths = df
+        #Aggiunta da Lab5
+        route_space = pd.DataFrame()
+        route_space['path'] = paths
+        for i in range(10):
+            route_space[str(i)] = ['free']*len(paths)
+            self._route_space = route_space
 
     #Lab3 --ridefinita in Lab4 sotto
     #def find_best_latency(self, input_node, output_node):
@@ -146,7 +166,7 @@ class Network(object):
     #        inout_df.latency == best_latency].path.values[0].replace('->', '')
     #    return best_path
 
-    def stream(self, connections, best='latency'):
+    def stream(self, connections, best='latency'): #Aggiornato a Lab5
         streamed_connections = []
         for connection in connections:
             input_node = connection.input_node
@@ -161,35 +181,74 @@ class Network(object):
             else:
                 print('ERROR: best input not recognized.Value:', best)
                 continue
-            if path: #added condition for Lab4 on the path
-                in_signal_information = SignalInformation(signal_power, path)
-                out_signal_information = self.propagate(in_signal_information)
-                connection.latency = out_signal_information.latency
-                noise = out_signal_information.noise_power
-                connection.snr = 10 * np.log10(signal_power / noise)
+            # if path: #added condition for Lab4 on the path
+            #     in_signal_information = SignalInformation(signal_power, path)
+            #     out_signal_information = self.propagate(in_signal_information)
+            #     connection.latency = out_signal_information.latency
+            #     noise = out_signal_information.noise_power
+            #     connection.snr = 10 * np.log10(signal_power / noise)
+            if path: #Condiione aggiornata a Lab5
+                path_occupancy = self.route_space.loc[self.route_space.path == path].T.values[1:]
+                channel = [i for i in range(len(path_occupancy)) if path_occupancy[i] =='free'][0]
+                path = path.replace('->', '')
+                in_lightpath = Lightpath(signal_power, path, channel)
+                out_lightpath = self.propagate(in_lightpath, True)
+                connection.latency = out_lightpath.latency
+                noise_power = out_lightpath.noise_power
+                connection.snr = 10 * np.log10(signal_power / noise_power)
+                self.update_route_space(path, channel)
             else:
                 connection.snr=0
                 connection.latency='None'
             streamed_connections.append(connection)
         return streamed_connections
 
-    #es7 Lab4
+    #due metodi aggiunti (lab5)
+    @staticmethod
+    def path_to_line_set(path):
+        path = path.replace('->', '')
+        return set([path[i] + path[i + 1] for i in range(len(path) - 1)])
 
-    def available_paths(self, input_node, output_node):
+    def update_route_space(self, path, channel):
+        all_paths = [self.path_to_line_set(p) for p in self.route_space.path.values]
+        states = self.route_space[str(channel)]
+        lines = self.path_to_line_set(path)
+        for i in range(len(all_paths)):
+            line_set = all_paths[i]
+            if lines.intersection(line_set):
+                states[i] = 'occupied'
+        self.route_space[str(channel)] = states
+
+    #es7 Lab4
+    #Modifica Lab5 es4 in modo da gestire la channel occupancy (tutti e tre i metodi)
+
+    # def available_paths(self, input_node, output_node):    #Funzione da Lab4
+    #     if self.weighted_paths is None:
+    #         self.set_weighted_paths(1)
+    #     all_paths = [path for path in self.weighted_paths.path.values
+    #         if ((path[0] == input_node) and (path[-1] == output_node))]
+    #     unavailable_lines = [line for line in self.lines
+    #         if self.lines[line].state =='occupied']
+    #     available_paths = []
+    #     for path in all_paths:
+    #         available = True
+    #         for line in unavailable_lines:
+    #             if line[0] + '->' + line[1] in path:
+    #                 available = False
+    #                 break
+    #         if available:
+    #             available_paths.append(path)
+    #     return available_paths
+
+    def available_paths(self, input_node, output_node): #Funione ridefinita in contesto a Lab5
         if self.weighted_paths is None:
             self.set_weighted_paths(1)
         all_paths = [path for path in self.weighted_paths.path.values
-            if ((path[0] == input_node) and (path[-1] == output_node))]
-        unavailable_lines = [line for line in self.lines
-            if self.lines[line].state =='occupied']
+                 if ((path[0] == input_node) and (path[-1] == output_node))]
         available_paths = []
         for path in all_paths:
-            available = True
-            for line in unavailable_lines:
-                if line[0] + '->' + line[1] in path:
-                    available = False
-                    break
-            if available:
+            path_occupancy = self.route_space.loc[self.route_space.path == path].T.values[1:]
+            if 'free' in path_occupancy:
                 available_paths.append(path)
         return available_paths
 
@@ -198,7 +257,8 @@ class Network(object):
         if available_paths:
             inout_df = self.weighted_paths.loc[self.weighted_paths.path.isin(available_paths)]
             best_snr = np.max(inout_df.snr.values)
-            best_path = inout_df.loc[inout_df.snr == best_snr].path.values[0].replace('->', '')
+            #best_path = inout_df.loc[inout_df.snr == best_snr].path.values[0].replace('->', '')
+            best_path = inout_df.loc[inout_df.snr == best_snr].path.values[0] #da Lab5
         else:
             best_path = None
         return best_path
@@ -208,7 +268,13 @@ class Network(object):
         if available_paths:
             inout_df = self.weighted_paths.loc[self.weighted_paths.path.isin(available_paths)]
             best_latency = np.min(inout_df.latency.values)
-            best_path = inout_df.loc[inout_df.latency == best_latency].path.values[0].replace('->', '')
+            #best_path = inout_df.loc[inout_df.latency == best_latency].path.values[0].replace('->', '')
+            best_path = inout_df.loc[inout_df.latency == best_latency].path.values[0]#da Lab5
         else:
             best_path = None
         return best_path
+
+    #Lab5
+    @property
+    def route_space(self):
+        return self._route_space

@@ -32,15 +32,15 @@ class Node(object):
     def successive(self,successive):
         self._successive=successive
 
-    def propagate(self,signal_information,occupation=False):
-        path=signal_information.path
+    def propagate(self,lightpath,occupation=False):
+        path=lightpath.path
         if len(path)>1:
             line_label=path[:2]
             line=self.successive[line_label]
-            signal_information.next()
-            signal_information=line.propagate(signal_information, occupation) #Lab4
+            lightpath.next()
+            lightpath=line.propagate(lightpath, occupation) #Lab5 aggiornato lightpath al posto di signalinformation
 
-        return signal_information
+        return lightpath
 
 
 
