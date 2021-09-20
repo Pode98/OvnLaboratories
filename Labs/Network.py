@@ -63,6 +63,7 @@ class Network(object):
                 x1=n1.position[0]
                 y1=n1.position[1]
                 plt.plot([x0,x1],[y0,y1],'b')
+        plt.xlabel('Km')
         plt.title('Network')
         plt.show()
 
@@ -83,16 +84,27 @@ class Network(object):
                     paths.append(path+label2)
         return  paths
 
-    def connect(self):
+    def connect(self):#Added switching matrix reference Lab6
         nodes_dict=self.nodes
         lines_dict=self.lines
+        switching_matrix={}
         for node_label in nodes_dict:
             node=nodes_dict[node_label]
             for connected_node in node.connected_nodes:
+                inner_dict={connected_node:np.zeros(10)}
+                for connected_node2 in node.connected_nodes:
+                    if connected_node2!=connected_node:
+                        dict_tmp={connected_node2:np.ones(10)}
+                        inner_dict.update(dict_tmp)
+
+                switching_matrix.update({connected_node:inner_dict})
+
                 line_label=node.label+connected_node
                 line=lines_dict[line_label]
                 line.successive[connected_node]=nodes_dict[connected_node]
                 node.successive[line_label]=lines_dict[line_label]
+            node.switching_matrix=switching_matrix
+            switching_matrix={}
         self._connected = True
 
 

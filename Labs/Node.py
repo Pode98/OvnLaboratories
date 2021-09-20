@@ -11,6 +11,7 @@ class Node(object):
         self._position=node_dict['position']
         self._connected_nodes=node_dict['connected_nodes']
         self._successive={}
+        self._switching_matrix=None #Lab6 added attribute property and setter
 
     @property
     def label(self):
@@ -31,6 +32,14 @@ class Node(object):
     @successive.setter
     def successive(self,successive):
         self._successive=successive
+
+    @property
+    def switching_matrix(self):
+        return self._switching_matrix
+
+    @successive.setter
+    def successive(self, value):
+        self._switching_matrix = value
 
     def propagate(self,lightpath,occupation=False):
         path=lightpath.path
