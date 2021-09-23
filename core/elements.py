@@ -168,7 +168,7 @@ class Line(object):
         # state
         if occupation:  # Condizione aggiornata da Lab5
             channel = lightpath.channel
-            new_state = self.state.copy()
+            new_state = list(self.state)
             new_state[channel] = 'occupied'
             self.state = new_state
 
