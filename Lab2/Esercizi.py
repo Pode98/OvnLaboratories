@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import json
 
-df = pd.read_csv('sales_data.csv')
+df = pd.read_csv('../resources/sales_data.csv')
 profit_list = df['total_profit'].values
 months = df['month_number'].values
 plt.figure()
@@ -16,7 +16,7 @@ plt.yticks([100e3, 200e3, 300e3, 400e3, 500e3])
 plt.show()
 
 
-df = pd.read_csv('sales_data.csv')
+df = pd.read_csv('../resources/sales_data.csv')
 profit_list = df['total_profit'].values
 months = df['month_number'].values
 plt.figure()
@@ -31,7 +31,7 @@ plt.yticks([100e3, 200e3, 300e3, 400e3, 500e3])
 plt.show()
 
 
-df = pd.read_csv('sales_data.csv')
+df = pd.read_csv('../resources/sales_data.csv')
 months = df['month_number'].values
 face_cream_sales_data = df['facecream'].values
 face_wash_sales_data = df['facewash'].values
@@ -55,7 +55,7 @@ plt.title('Sales data')
 plt.show()
 
 
-df = pd.read_csv('sales_data.csv')
+df = pd.read_csv('../resources/sales_data.csv')
 months = df['month_number'].tolist()
 tooth_paste_sales_data = df['toothpaste'].values
 plt.figure()
@@ -68,7 +68,7 @@ plt.xticks(months)
 plt.grid(True, linewidth=0.5, linestyle='--')
 plt.show()
 
-df = pd.read_csv('sales_data.csv')
+df = pd.read_csv('../resources/sales_data.csv')
 months = df['month_number'].tolist()
 bathing_soap_sales_data = df['bathingsoap'].tolist()
 plt.bar(months , bathing_soap_sales_data)
@@ -165,7 +165,7 @@ print('\nJSON data:')
 print(json.dumps(j_str, sort_keys=True, indent=4))
 
 
-with open('states.json') as f:
+with open('../resources/states.json') as f:
     state_data = json.load(f)
 print('Original JSON keys: ', [state.keys()for state in state_data['states']][0])
 for state in state_data['states']:

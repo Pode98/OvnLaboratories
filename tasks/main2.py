@@ -1,5 +1,5 @@
 from random import shuffle
-from Labs.Network import *
+from core.Network import *
 
 network = Network('nodes.json')
 network.connect()

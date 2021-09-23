@@ -1,22 +1,17 @@
-import json
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from scipy.constants import c
-from Labs.Node import *
-from Labs.Line import *
-from Labs.Signal_information import *
-from Labs.Connections import *
+from core.Signal_information import *
+from core.Node import *
+from core.Line import *
 
 
 class Network(object):
-    def __init__(self):
+    def __init__(self,json_path):
         self._nodes={}
         self._lines={}
         self._connected = False #Lab4
         self._weighted_paths = None #Lab4
         self._route_space = None #Lab5
-        node_json=json.load(open(json.path,'r'))
+        node_json=json.load(open(json_path,'r'))
         for node_label in node_json:
             #create nodes
             node_dict=node_json[node_label]
@@ -32,7 +27,7 @@ class Network(object):
                 node_position=np.array(node_json[node_label]['position'])
                 connected_node_position=np.array(node_json[connected_node_label]['position'])
                 line_dict['lenght']=np.sqrt(np.sum(node_position-connected_node_position)**2)
-                line=line_dict[line_label]
+                line=Line(line_dict)
                 self._lines[line_label]=line
 
 
@@ -75,7 +70,11 @@ class Network(object):
         for i in range(len(cross_nodes)+1):
             inner_paths[str(i+1)]=[]
             for inner_path in inner_paths[str(i)]:
-                inner_paths[str(i+1)]+=[inner_path + cross_node for cross_node in cross_nodes if ((inner_paths[-1]+cross_node in cross_lines)&(cross_node not in inner_path))]
+                inner_paths[str(i+1)]+=[
+                    inner_path + cross_node
+                    for cross_node in cross_nodes
+                    if ((inner_path[-1]+cross_node in cross_lines)&
+                        (cross_node not in inner_path))]
 
         paths=[]
         for i in range(len(cross_nodes)+1):

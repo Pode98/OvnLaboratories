@@ -1,14 +1,10 @@
-import json
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.constants import c
-import pandas as pd
-from Labs.Node import *
-from Labs.Line import *
-from Labs.Signal_information import *
-from Labs.Network import *
+from core.elements import *
+#from pathlib import Path
+# root=Path(__file__).parent
+# folder=root+'/resources'
+# file=folder+'/nodes.json'
 
-network = Network('nodes.json')
+network = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/nodes.json')
 network.connect()
 node_labels = network.nodes.keys()
 pairs = []

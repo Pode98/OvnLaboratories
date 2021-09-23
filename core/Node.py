@@ -1,10 +1,3 @@
-import json
-import numpy as np
-import matplotlib.pyplot as plt
-
-from Labs.Signal_information import *
-from Labs.Line import *
-
 class Node(object):
     def __init__(self,node_dict):
         self._label=node_dict['label']
@@ -37,8 +30,8 @@ class Node(object):
     def switching_matrix(self):
         return self._switching_matrix
 
-    @successive.setter
-    def successive(self, value):
+    @switching_matrix.setter
+    def switching_matrix(self, value):
         self._switching_matrix = value
 
     def propagate(self,lightpath,occupation=False):
