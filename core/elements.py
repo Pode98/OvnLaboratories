@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import matplotlib
-import random
+from random import shuffle
 import pandas as pd
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -530,7 +530,7 @@ class Connection(object):
         return self._input_node
 
     @property
-    def ouput_node(self):
+    def output_node(self):
         return self._output_node
 
     @property

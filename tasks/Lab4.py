@@ -1,7 +1,6 @@
-from random import shuffle
-from core.Network import *
+from core.elements import *
 
-network = Network('nodes.json')
+network = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/nodes.json')
 network.connect()
 node_labels = list(network.nodes.keys())
 connections = []
