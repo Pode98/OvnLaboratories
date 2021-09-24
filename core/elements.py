@@ -1,3 +1,4 @@
+import itertools
 import json
 import numpy as np
 import matplotlib
@@ -444,7 +445,7 @@ class Network(object):
         path = path.replace('->', '')
         return set([path[i] + path[i + 1] for i in range(len(path) - 1)])
 
-    def update_route_space(self, path, channel):
+    def update_route_space(self, path, channel): #Modifica da Lab6 per aggiornare la routing space con la switching matrix
         all_paths = [self.path_to_line_set(p) for p in self.route_space.path.values]
         states = self.route_space[str(channel)]
         lines = self.path_to_line_set(path)
@@ -452,7 +453,34 @@ class Network(object):
             line_set = all_paths[i]
             if lines.intersection(line_set):
                 states[i] = 'occupied'
+
+                path_to_update=self.line_set_to_path(line_set)
+
+                for j in range(len(path_to_update)):     #strange
+                    if j not in (0, len(path_to_update) - 1):
+                        if ((path_to_update[j - 1] in self.nodes[path_to_update[j]].connected_nodes) & (
+                                path_to_update[j + 1] in self.nodes[path_to_update[j]].connected_nodes)):
+                            self.nodes[path_to_update[j]].switching_matrix[path_to_update[j - 1]][
+                                path_to_update[j + 1]][
+                                channel] = 0
         self.route_space[str(channel)] = states
+
+    #metodo per ottenere tutte le liste di stati dalle linee
+    @staticmethod #how tf is this working i've really have no idea
+    def line_set_to_path(line_set):
+        path=""
+        elements=list(itertools.permutations(list(line_set), len(list(line_set))))
+        for i in range(len(elements)):
+            flag=1
+            for j in range(len(elements)-1):
+                if elements[i][j][1] != elements[i][j+1][0]:
+                    flag=0
+                j+=2
+            if flag==1:
+                for j in range(len(elements[i])):
+                    path+=elements[i][j][0]
+                return path
+
 
     #es7 Lab4
     #Modifica Lab5 es4 in modo da gestire la channel occupancy (tutti e tre i metodi)
