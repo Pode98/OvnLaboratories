@@ -246,7 +246,7 @@ class Node(object):
 ######################## CLASS NETWORK ###########################################
 
 class Network(object):
-    def __init__(self,json_path):
+    def __init__(self,json_path,transceiver='fixed_rate'):
         self._nodes={}
         self._lines={}
         self._connected = False #Lab4
@@ -263,7 +263,7 @@ class Network(object):
 
             #Lab 7
             if 'transceiver' not in node_json[node_label]['transceiver']:
-                node.transceiver='fixed_rate'
+                node.transceiver=transceiver
             else:
                 node.transceiver=node_json[node_label]['transceiver']
 
@@ -425,7 +425,7 @@ class Network(object):
     #        inout_df.latency == best_latency].path.values[0].replace('->', '')
     #    return best_path
 
-    def stream(self, connections, best='latency'): #Aggiornato a Lab5
+    def stream(self, connections, best='latency'): #Aggiornato a Lab7
         streamed_connections = []
         for connection in connections:
             input_node = connection.input_node
@@ -450,13 +450,17 @@ class Network(object):
                 path_occupancy = self.route_space.loc[self.route_space.path == path].T.values[1:]
                 channel = [i for i in range(len(path_occupancy)) if path_occupancy[i] =='free'][0]
                 #Lab 7 es 3
-                lightpath=Lightpath[signal_power,path,channel]
+                lightpath=Lightpath(signal_power,path,channel)
                 rb=self.calculate_bit_rate(lightpath,self.nodes[input_node].transceiver)
                 if rb==0:
                     continue
                 else:
                     connection.bit_rate=rb
                 #end
+                path_occupancy = self.route_space.loc[
+                                     self.route_space.path == path].T.values[1:]
+                channel = [i for i in range(len(path_occupancy))
+                           if path_occupancy[i] == 'free'][0]
                 path = path.replace('->', '')
                 in_lightpath = Lightpath(signal_power, path, channel)
                 out_lightpath = self.propagate(in_lightpath, True)
@@ -584,7 +588,7 @@ class Network(object):
         GSNR=10**(GSNR_db/10)
 
         if strategy=='fixed_rate':
-            if GSNR>2*math.erfcinv(2*BER_t)**2 *(Rs/Bn):
+            if GSNR > 2 * math.erfcinv(2 * BER_t) ** 2 * (Rs/Bn):
                 Rb=100
             else:
                 Rb=0
