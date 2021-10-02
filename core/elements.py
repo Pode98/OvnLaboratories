@@ -123,6 +123,9 @@ class Line(object):
         self._lenght = line_dict['lenght']
         self._state = ['free'] * 10  # Lab5 trasformato il campo in vettore
         self._successive = {}  # Node
+        self._n_amplifiers= int(np.cell(self._lenght/80)) #added the successives 3 parameters
+        self._gain=16
+        self._noise_figure=3
 
     @property
     def label(self):
@@ -163,6 +166,26 @@ class Line(object):
         noise = signal_power / (2 * self._lenght)
         return noise
 
+    @property
+    def n_amplifiers(self):
+        return self._n_amplifiers
+
+    @property
+    def span_length(self):
+        return self._span_length
+
+    @property
+    def gain(self):
+        return self._gain
+
+    @gain.setter
+    def gain(self, gain):
+        self._gain = gain
+
+    @property
+    def noise_figure(self):
+        return self._noise_figure
+
     def propagate(self, lightpath, occupation=False):  # sostituito SignalInformation con Lightpath Lab5
         # latency
         latency = self.latency_generation()
@@ -183,6 +206,16 @@ class Line(object):
         node = self.successive[lightpath.path[0]]
         lightpath = node.propagate(lightpath, occupation)
         return lightpath
+
+    def ase_generation(self):
+        gain_lin = 10 ** (self._gain / 10)
+        noise_figure_lin = 10 ** (self._noise_figure / 10)
+        N = self._n_amplifiers
+        f = 193.4e12
+        h = Planck
+        Bn = 12.5e9
+        ase_noise = N * h * f * Bn * noise_figure_lin * (gain_lin - 1)
+        return ase_noise
 
 
 #################################### CLASS NODE ###############################################
