@@ -14,6 +14,7 @@ from random import shuffle
 
 BER_t = 1e-3
 Bn=12.5e9 #banda rumore
+Planck=6.6e-34
 
 
 class Lightpath(object):  #Lab5 definita nuova classe
@@ -127,6 +128,11 @@ class Line(object):
         self._gain=16
         self._noise_figure=3
 
+        # Pysical parameters of the fiber
+        self._alpha = 4.6e-5
+        self._beta = 6.38e-27
+        self._gamma = 1.27e-3
+
     @property
     def label(self):
         return self._label
@@ -216,6 +222,18 @@ class Line(object):
         Bn = 12.5e9
         ase_noise = N * h * f * Bn * noise_figure_lin * (gain_lin - 1)
         return ase_noise
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @property
+    def beta(self):
+        return self._beta
+
+    @property
+    def gamma(self):
+        return self._gamma
 
 
 #################################### CLASS NODE ###############################################
