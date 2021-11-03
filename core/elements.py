@@ -70,6 +70,14 @@ class Lightpath(object):  #Lab5 definita nuova classe
     def next(self):
         self.path = self.path[1:]
 
+    @property
+    def Rs(self):
+        return self._Rs
+
+    @property
+    def df(self):
+        return self._df
+
 class SignalInformation(Lightpath):
     def __init__(self,power,path):
         self._signal_power=power
@@ -126,6 +134,15 @@ class Line(object):
         self._n_amplifiers= int(np.cell(self._lenght/80)) #added the successives 3 parameters
         self._gain=16
         self._noise_figure=3
+
+        # Pysical parameters of the fiber
+        # Added from 3rd point lab8
+        self._alpha = 0.2e-3
+        self._beta = 2.13e-26
+        self._gamma = 1.27e-3
+        self._rs=32e9
+        self._df=50e9
+        # Remember that: α = αdB/20 log10 (e)  and Leff = 1/2α
 
     @property
     def label(self):
@@ -186,6 +203,26 @@ class Line(object):
     def noise_figure(self):
         return self._noise_figure
 
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @property
+    def beta(self):
+        return self._beta
+
+    @property
+    def gamma(self):
+        return self._gamma
+
+    @property
+    def rs(self):
+        return self._rs
+
+    @property
+    def df(self):
+        return self._df
+
     def propagate(self, lightpath, occupation=False):  # sostituito SignalInformation con Lightpath Lab5
         # latency
         latency = self.latency_generation()
@@ -216,6 +253,26 @@ class Line(object):
         Bn = 12.5e9
         ase_noise = N * h * f * Bn * noise_figure_lin * (gain_lin - 1)
         return ase_noise
+
+    #last point of lab8
+    #all clear until now
+    def nli_generation(self, signal_power, dfp, Rsp):
+        Bn = 12.5e9  # GHz
+        eta_nli = self.eta_nli(dfp, Rsp)
+        nli = (signal_power ** 3) * eta_nli * self._n_amplifiers * Bn
+        return nli
+    #need to find this formula
+    def eta_nli(self, dfp, Rsp):
+        df = dfp
+        Rs = Rsp
+        a = self.alpha / (20 * np.log10(np.e))
+        Nch = 10
+        b2 = self.beta2
+        e_nli = 16 / (27 * np.pi) * np.log(
+            np.pi ** 2 * b2 * Rs ** 2 * Nch ** (2 * Rs / df) / (2 * a)) * self.gamma ** 2 / (
+                        4 * a * b2 * Rs ** 3)
+
+        return e_nli
 
 
 #################################### CLASS NODE ###############################################
