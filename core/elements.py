@@ -23,7 +23,7 @@ class Lightpath(object):  #Lab5 definita nuova classe
         self._channel = channel
         self._noise_power = 0
         self._latency = 0
-        self.Rs = 32.0e9
+        self.Rs = 32.0e9  #Lab8
         self.df = 50.0e9
 
     @property
