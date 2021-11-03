@@ -179,8 +179,13 @@ class Line(object):
         latency = self._lenght / (c * 2 / 3)
         return latency
 
-    def noise_generation(self, signal_power):
-        noise = signal_power / (2 * self._lenght)
+    # def noise_generation(self, signal_power):  Old method
+    #     noise = signal_power / (2 * self._lenght)
+    #     return noise
+
+    def noise_generation(self, lightpath): #Lab9 method
+        # noise = 0.000000001 * signal_power * self._length  # 1e-9 * s_p * length
+        noise = self.ase_generation() + self.nli_generation(lightpath.signal_power, lightpath.df, lightpath.Rs)
         return noise
 
     @property
@@ -228,9 +233,11 @@ class Line(object):
         latency = self.latency_generation()
         lightpath.add_latency(latency)
 
-        # noise
-        signal_power = lightpath.signal_power
-        noise = self.noise_generation(signal_power)
+        # noise old method
+        #signal_power = lightpath.signal_power
+        sp = self.optimized_launch_power(self.eta_nli(lightpath.df, lightpath.Rs)) #Lab9 adjust
+        lightpath.set_signal_power(sp) #same as up
+        noise = self.noise_generation(lightpath)
         lightpath.add_noise(noise)
 
         # state
@@ -274,6 +281,12 @@ class Line(object):
 
         return e_nli
 
+    def optimized_launch_power(self, eta):  #Lab9 2nd point
+        F = 10 ** (self.noise_figure / 10)
+        G = 10 ** (self.gain / 10)
+        f0 = 193.414e12
+        olp = ((F * f0 * h * G) / (2 * eta)) ** (1 / 3)
+        return olp
 
 #################################### CLASS NODE ###############################################
 
