@@ -104,5 +104,5 @@ print("Average Capacity Fixed-Rate:", np.mean(np.ma.masked_equal(bit_rate_fixed_
 print("Total Capacity Flex-Rate:", np.sum(bit_rate_flex_rate))
 print("Average Capacity Flex-Rate:", np.mean(np.ma.masked_equal(bit_rate_flex_rate, 0)))
 print("Total Capacity Shannon:", np.sum(bit_rate_shannon).round(2))
-print("Average Capacity Shannon:", np.mean(np.ma.masked_equal(bit_rate_shannon, 0).round(2)))h
+print("Average Capacity Shannon:", np.mean(np.ma.masked_equal(bit_rate_shannon, 0).round(2)))
 
