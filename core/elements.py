@@ -1,7 +1,7 @@
 import itertools
 import json
 import matplotlib
-import math
+from scipy import special as math
 import random
 
 import numpy as np
@@ -70,13 +70,6 @@ class Lightpath(object):  #Lab5 definita nuova classe
     def next(self):
         self.path = self.path[1:]
 
-    @property
-    def Rs(self):
-        return self._Rs
-
-    @property
-    def df(self):
-        return self._df
 
 class SignalInformation(Lightpath):
     def __init__(self,power,path):
@@ -84,6 +77,8 @@ class SignalInformation(Lightpath):
         self._path=path
         self._noise_power=0
         self._latency=0
+        self.Rs = 32.0e9  #Lab8
+        self.df = 50.0e9
 
     @property
     def signal_power(self):
@@ -122,6 +117,7 @@ class SignalInformation(Lightpath):
     def next(self):
         self.path=self.path[1:]
 
+
 ################################### CLASS LINE ###########################################
 
 class Line(object):
@@ -131,7 +127,7 @@ class Line(object):
         self._lenght = line_dict['lenght']
         self._state = ['free'] * 10  # Lab5 trasformato il campo in vettore
         self._successive = {}  # Node
-        self._n_amplifiers= int(np.cell(self._lenght/80)) #added the successives 3 parameters
+        self._n_amplifiers= int((self._lenght/80e3)) #added the successives 3 parameters
         self._gain=16
         self._noise_figure=3
 
@@ -142,7 +138,7 @@ class Line(object):
         self._gamma = 1.27e-3
         self._rs=32e9
         self._df=50e9
-        # Remember that: α = αdB/20 log10 (e)  and Leff = 1/2α
+
 
     @property
     def label(self):
@@ -228,6 +224,9 @@ class Line(object):
     def df(self):
         return self._df
 
+    def free_state(self):  #Lab9
+        self._state = ['free'] * 10
+
     def propagate(self, lightpath, occupation=False):  # sostituito SignalInformation con Lightpath Lab5
         # latency
         latency = self.latency_generation()
@@ -256,7 +255,7 @@ class Line(object):
         noise_figure_lin = 10 ** (self._noise_figure / 10)
         N = self._n_amplifiers
         f = 193.4e12
-        h = Planck
+        #h = Planck
         Bn = 12.5e9
         ase_noise = N * h * f * Bn * noise_figure_lin * (gain_lin - 1)
         return ase_noise
@@ -274,7 +273,7 @@ class Line(object):
         Rs = Rsp
         a = self.alpha / (20 * np.log10(np.e))
         Nch = 10
-        b2 = self.beta2
+        b2 = self.beta
         e_nli = 16 / (27 * np.pi) * np.log(
             np.pi ** 2 * b2 * Rs ** 2 * Nch ** (2 * Rs / df) / (2 * a)) * self.gamma ** 2 / (
                         4 * a * b2 * Rs ** 3)
@@ -365,7 +364,7 @@ class Network(object):
             self._nodes[node_label]=node
 
             #Lab 7
-            if 'transceiver' not in node_json[node_label]['transceiver']:
+            if 'transceiver' not in node_json[node_label].keys():
                 node.transceiver=transceiver
             else:
                 node.transceiver=node_json[node_label]['transceiver']
@@ -433,6 +432,15 @@ class Network(object):
                 if path[-1] + label2 in cross_lines:
                     paths.append(path+label2)
         return  paths
+
+    #Lab9: da rivedere
+
+    def free_space(self):
+        states = ['free'] * len(self.route_space['path'])
+        for l in self.lines.values():
+            l.free_state()
+        for i in range(10):
+            self.route_space[str(i)] = states
 
     def connect(self):#Added switching matrix reference Lab6
         nodes_dict=self.nodes
@@ -553,9 +561,9 @@ class Network(object):
                 path_occupancy = self.route_space.loc[self.route_space.path == path].T.values[1:]
                 channel = [i for i in range(len(path_occupancy)) if path_occupancy[i] =='free'][0]
                 #Lab 7 es 3
-                lightpath=Lightpath(signal_power,path,channel)
-                rb=self.calculate_bit_rate(lightpath,self.nodes[input_node].transceiver)
-                if rb==0:
+                lightpath = Lightpath(signal_power, path, channel)
+                rb = self.calculate_bit_rate(lightpath,self.nodes[input_node].transceiver)
+                if rb == 0:
                     continue
                 else:
                     connection.bit_rate=rb
@@ -606,17 +614,17 @@ class Network(object):
     #metodo per ottenere tutte le liste di stati dalle linee
     @staticmethod #how tf is this working i've really have no idea
     def line_set_to_path(line_set):
-        path=""
-        elements=list(itertools.permutations(list(line_set), len(list(line_set))))
+        path = ""
+        elements = list(itertools.permutations(list(line_set), len(list(line_set))))
         for i in range(len(elements)):
-            flag=1
-            for j in range(len(elements)-1):
+            flag = 1
+            for j in range(len(elements[i])-1):
                 if elements[i][j][1] != elements[i][j+1][0]:
-                    flag=0
-                j+=2
-            if flag==1:
+                    flag = 0
+                j += 2
+            if flag == 1:
                 for j in range(len(elements[i])):
-                    path+=elements[i][j][0]
+                    path += elements[i][j][0]
                 return path
 
 
@@ -714,6 +722,27 @@ class Network(object):
         return Rb
 
 
+    #Lab9: added functions to update the traffic matrix
+
+    def node_to_number(self, str):
+        nodes = list(self.nodes.keys())
+        nodes.sort()
+        return nodes.index(str)
+
+    def upgrade_traffic_matrix(self, mtx, nodeA, nodeB):
+        A = self.node_to_number(nodeA)
+        B = self.node_to_number(nodeB)
+        connection = Connection(nodeA, nodeB, 1e-3)
+        list_con = [connection]
+        self.stream(list_con)
+        btr = connection.bit_rate
+        if btr == 0:
+            mtx[A][B] = float('inf')
+            return float('inf')
+        mtx[A][B] -= btr
+        return mtx[A][B]
+
+
 
 ############################# CLASS CONNECTIONS ######################################
 
@@ -759,5 +788,5 @@ class Connection(object):
         return self._bit_rate
 
     @bit_rate.setter
-    def snr(self, bit_rate):
+    def bit_rate(self, bit_rate):
         self._bit_rate = bit_rate

@@ -4,9 +4,9 @@ import copy
 
 # used for the simulation of 100 connections with all the transceiver strategies
 def main():
-    network = Network('248253.json')
-    network_flex_rate = Network('248253.json', 'flex_rate')
-    network_shannon = Network('248253.json', 'shannon')
+    network = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/248253.json')
+    network_flex_rate = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/248253.json', 'flex_rate')
+    network_shannon = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/248253.json', 'shannon')
     node_labels = list(network.nodes.keys())
     connections = []
     for i in range(100):
@@ -27,7 +27,7 @@ def main():
 
     plt.title('SNR Distribution Full fixed-rate')
     plt.xlabel('dB')
-    plt.savefig('results/SNRDistributionFullfixed_rate.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/SNRDistributionFullfixed_rate.png')
     plt.show()
 
     bit_rate_fixed_rate = [connection.bit_rate for connection in streamed_connections_fixed_rate]
@@ -36,7 +36,7 @@ def main():
 
     plt.title('BitRate Full fixed-rate')
     plt.xlabel('Gbps')
-    plt.savefig('results/BitRateFullfixed_rate.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/BitRateFullfixed_rate.png')
     plt.show()
 
     # flex rate_____________________________________________________________________________
@@ -49,7 +49,7 @@ def main():
 
     plt.title('SNR Distribution Full flex-rate')
     plt.xlabel('dB')
-    plt.savefig('results/SNRDistributionFullflex_rate.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/SNRDistributionFullflex_rate.png')
     plt.show()
 
     bit_rate_flex_rate = [connection.bit_rate for connection in streamed_connections_flex_rate]
@@ -58,7 +58,7 @@ def main():
 
     plt.xlabel('Gbps')
     plt.title('BitRate Full Flex-Rate')
-    plt.savefig('results/BitRateFullFlex_Rate.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/BitRateFullFlex_Rate.png')
     plt.show()
 
     # shannon________________________________________________________________________________
@@ -71,7 +71,7 @@ def main():
 
     plt.title('SNR Distribution Full Shannon')
     plt.xlabel('dB')
-    plt.savefig('results/SNRDistributionFullshannon.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/SNRDistributionFullshannon.png')
     plt.show()
 
     bit_rate_shannon = [connection.bit_rate for connection in streamed_connections_shannon]
@@ -81,7 +81,7 @@ def main():
 
     plt.xlabel('Gbps')
     plt.title('BitRate Full Shannon')
-    plt.savefig('results/BitRateFullShannon.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/BitRateFullShannon.png')
     plt.show()
 
     # _______________________________________________________________________________________
@@ -95,12 +95,12 @@ def main():
     latencies = [connection.latency for connection in streamed_connections_shannon]
     plt.hist(np.ma.masked_equal(latencies, 0), bins=25)
     plt.title('Latency Distribution')
-    plt.savefig('results/LatencyDistribution.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/LatencyDistribution.png')
     plt.show()
     snrs=[connection.snr for connection in streamed_connections_shannon]
     plt.hist(np.ma.masked_equal(snrs, 0), bins=20)
     plt.title('SNR Dstribution')
-    plt.savefig('results/SNRDistribution.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/SNRDistribution.png')
     plt.show()
 
     # total capacity _________________________________________________________________________

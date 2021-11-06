@@ -8,7 +8,7 @@ import copy
 def main():
     sat_percent = 95
     # fixed rate_____________________________________________________________________________
-    network = Network('248253.json')
+    network = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/248253.json')
     n_node = len(network.nodes.keys())
     saturationFix = []
     MsFix = []
@@ -43,14 +43,14 @@ def main():
         network.free_space()
     plt.plot(MsFix, saturationFix)
     plt.title('Saturation Fixed-Rate')
-    plt.savefig('Plots/M_fixed_rate.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/M_fixed_rate.png')
     plt.xlabel('M')
     plt.ylabel('% of unsatisfied requests')
     plt.grid(linestyle='-', linewidth=0.5)
     plt.show()
 
     # flex rate_____________________________________________________________________________
-    network_flex_rate = Network('248253.json', 'flex_rate')
+    network_flex_rate = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/248253.json', 'flex_rate')
     n_node = len(network_flex_rate.nodes.keys())
     saturationflex = []
     Msflex = []
@@ -85,14 +85,14 @@ def main():
         network_flex_rate.free_space()
     plt.plot(Msflex, saturationflex)
     plt.title('Saturation Flex-Rate')
-    plt.savefig('results/M_flex_rate.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/M_flex_rate.png')
     plt.xlabel('M')
     plt.ylabel('% of unsatisfied requests')
     plt.grid(linestyle='-', linewidth=0.5)
     plt.show()
 
     # shannon________________________________________________________________________________
-    network_shannon = Network('248253.json', 'shannon')
+    network_shannon = Network('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/resources/248253.json', 'shannon')
     n_node = len(network_shannon.nodes.keys())
     saturationshan = []
     Msshan = []
@@ -128,7 +128,7 @@ def main():
         network_shannon.free_space()
     plt.plot(Msshan, saturationshan)
     plt.title('Saturation Parameter Shannon')
-    plt.savefig('results/M_shannon.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/M_shannon.png')
     plt.xlabel('M')
     plt.ylabel('% of unsatisfied requests')
     plt.grid(linestyle='-', linewidth=0.5)
@@ -141,7 +141,7 @@ def main():
     plt.grid(linestyle='-', linewidth=0.5)
     plt.legend(loc='lower right')
     plt.title('Saturation Parameter')
-    plt.savefig('results/M_all.png')
+    plt.savefig('/Users/alessiopodesta/PycharmProjects/OvnLaboratories/results/M_all.png')
     plt.show()
 
 
