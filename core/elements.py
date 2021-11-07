@@ -73,6 +73,7 @@ class Lightpath(object):  #Lab5 definita nuova classe
 
 class SignalInformation(Lightpath):
     def __init__(self,power,path):
+        #super().__init__(power, path, 0)
         self._signal_power=power
         self._path=path
         self._noise_power=0
@@ -399,14 +400,14 @@ class Network(object):
         nodes=self.nodes
         for node_label in nodes:
             n0=nodes[node_label]
-            x0=n0.position[0]
-            y0=n0.position[1]
+            x0=n0.position[0]/ 1e3
+            y0=n0.position[1]/ 1e3
             plt.plot(x0,y0,'go',markersize=10)
-            plt.text(x0+20,y0+20,node_label)
+            plt.text(x0,y0,node_label)
             for connected_node_label in n0.connected_nodes:
                 n1=nodes[connected_node_label]
-                x1=n1.position[0]
-                y1=n1.position[1]
+                x1=n1.position[0]/ 1e3
+                y1=n1.position[1]/ 1e3
                 plt.plot([x0,x1],[y0,y1],'b')
         plt.xlabel('Km')
         plt.title('Network')
@@ -508,6 +509,11 @@ class Network(object):
 
                 # Propagation
                 signal_information = SignalInformation(signal_power, path)
+                if pair in self.lines.keys():
+                    line = self.lines[pair]
+                    s_power = line.optimized_launch_power(line.eta_nli(signal_information.df, signal_information.Rs))
+                signal_information.set_signal_power(s_power)
+
                 signal_information = self.propagate(signal_information,occupation=False)
                 latencies.append(signal_information.latency)
                 noises.append(signal_information.noise_power)
@@ -523,7 +529,7 @@ class Network(object):
         route_space['path'] = paths
         for i in range(10):
             route_space[str(i)] = ['free']*len(paths)
-            self._route_space = route_space
+        self._route_space = route_space
 
     #Lab3 --ridefinita in Lab4 sotto
     #def find_best_latency(self, input_node, output_node):
@@ -651,7 +657,7 @@ class Network(object):
 
     def available_paths(self, input_node, output_node): #Funione ridefinita in contesto a Lab5
         if self.weighted_paths is None:
-            self.set_weighted_paths(1)
+            self.set_weighted_paths(1e-3)
         all_paths = [path for path in self.weighted_paths.path.values
                  if ((path[0] == input_node) and (path[-1] == output_node))]
         available_paths = []
@@ -659,7 +665,7 @@ class Network(object):
             path_occupancy = self.route_space.loc[self.route_space.path == path].T.values[1:]
             if 'free' in path_occupancy:
                 available_paths.append(path)
-        return available_paths
+            return available_paths
 
     def find_best_snr(self, input_node, output_node):
         available_paths = self.available_paths(input_node, output_node)
